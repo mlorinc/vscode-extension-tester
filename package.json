@@ -13,7 +13,8 @@
   },
   "scripts": {
     "prepack": "npm run build",
-    "build": "rm -rf out docs || rmdir out docs /s /q && tsc && chmod a+x ./out/cli.js",
+    "clean": "rm -rf out docs || rmdir out docs /s /q",
+    "build": "npm run clean && tsc && chmod a+x ./out/cli.js",
     "doc": "typedoc --out docs ./src/",
     "prepare-test": "cd test/test-project && npm install && rimraf package-lock.json",
     "test": "npm run build && cd test/test-project && npm run ui-test"
