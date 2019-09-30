@@ -135,7 +135,7 @@ export class CodeUtil {
      * @param settings path to custom settings json file
      * @param vscodeVersion version of VSCode to test against, default latest
      */
-    runTests(testFilesPattern: string, vscodeVersion: string = 'latest', quality: ReleaseQuality = ReleaseQuality.Stable, settings: string = ''): void {
+    runTests(testFilesPattern: string, vscodeVersion: string = 'latest', quality: ReleaseQuality = ReleaseQuality.Stable, settings: string = ''): Promise<number> {
         if (vscodeVersion !== 'latest' && this.availableVersions[quality].indexOf(vscodeVersion) < 0) {
             throw new Error(`Version ${vscodeVersion} is not available in ${quality} stream`);
         }
@@ -150,7 +150,7 @@ export class CodeUtil {
         process.env = finalEnv;
         process.env.TEST_RESOURCES = this.downloadFolder;
         const runner = new VSRunner(this.executablePath, literalVersion, this.parseSettings(settings));
-        runner.runTests(testFilesPattern);
+        return runner.runTests(testFilesPattern);
     }
 
     /**

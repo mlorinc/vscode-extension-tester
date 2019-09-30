@@ -60,14 +60,9 @@ export class VSRunner {
             await browser.quit();
         });
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.mocha.run((failures) => {
-                if (failures) {
-                    reject(failures);
-                }
-                else {
-                    resolve(failures);
-                }
+                resolve(failures);
             });
         })
     }

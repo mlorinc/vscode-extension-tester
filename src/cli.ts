@@ -50,9 +50,10 @@ program.command('run-tests <testFiles>')
     .description('Run the test files specified by a glob pattern')
     .option('-s, --storage <storage>', 'Use this folder for all test resources')
     .option('-o, --code_settings <settings.json>', 'Path to custom settings for VS Code json file')
-    .action((testFiles, cmd) => {
+    .action(async (testFiles, cmd) => {
         const extest = new ExTester(cmd.storage);
-        extest.runTests(testFiles, cmd.code_settings);
+        const failures = await extest.runTests(testFiles, cmd.code_settings);
+        process.exitCode = failures ? 1 : 0;
     });
 
 program.command('setup-and-run <testFiles>')
@@ -63,7 +64,8 @@ program.command('setup-and-run <testFiles>')
     .option('-o, --code_settings <settings.json>', 'Path to custom settings for VS Code json file')
     .action(async (testFiles, cmd) => {
         const extest = new ExTester(cmd.storage);
-        await extest.setupAndRunTests(cmd.code_version, cmd.type, testFiles, cmd.code_settings);
+        const failures = await extest.setupAndRunTests(cmd.code_version, cmd.type, testFiles, cmd.code_settings);
+        process.exitCode = failures ? 1 : 0;
     });
 
 program.parse(process.argv);

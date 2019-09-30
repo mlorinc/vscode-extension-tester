@@ -122,9 +122,9 @@ export class ExTester {
      * @param testFilesPattern glob pattern for test files to run
      * @param settings path to a custom vscode settings json file
      */
-    async setupAndRunTests(vscodeVersion: string = 'latest', vscodeStream: string = 'stable', testFilesPattern: string, settings: string = ''): Promise<void> {
+    async setupAndRunTests(vscodeVersion: string = 'latest', vscodeStream: string = 'stable', testFilesPattern: string, settings: string = ''): Promise<number> {
         await this.setupRequirements(vscodeVersion, vscodeStream);
-        this.runTests(testFilesPattern, vscodeVersion, vscodeStream, settings);
+        return this.runTests(testFilesPattern, vscodeVersion, vscodeStream, settings);
     }
 
     /**
@@ -134,7 +134,7 @@ export class ExTester {
      * @param settings path to a custom vscode settings json file
      * @param vscodeVersion version of VSCode to test against, default latest
      */
-    runTests(testFilesPattern: string, vscodeVersion: string = 'latest', vscodeStream: string = 'stable', settings: string = ''): void {
+    runTests(testFilesPattern: string, vscodeVersion: string = 'latest', vscodeStream: string = 'stable', settings: string = ''): Promise<number> {
         let stream = ReleaseQuality.Stable;
         if (vscodeStream === 'insider') {
             stream = ReleaseQuality.Insider;
