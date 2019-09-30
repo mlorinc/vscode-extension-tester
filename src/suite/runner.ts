@@ -24,8 +24,9 @@ export class VSRunner {
     /**
      * Set up mocha suite, add vscode instance handling, run tests
      * @param testFilesPattern glob pattern of test files to run
+     * @returns promise which resolves with number of failures
      */
-    runTests(testFilesPattern: string): void {
+    runTests(testFilesPattern: string): Promise<number> {
         let self = this;
         let browser: VSBrowser = new VSBrowser(this.codeVersion, this.customSettings);
         const universalPattern = testFilesPattern.replace(/'/g, '');
@@ -59,8 +60,15 @@ export class VSRunner {
             await browser.quit();
         });
 
-        this.mocha.run((failures) => {
-            process.exitCode = failures ? 1 : 0;
-        });
+        return new Promise((resolve, reject) => {
+            this.mocha.run((failures) => {
+                if (failures) {
+                    reject(failures);
+                }
+                else {
+                    resolve(failures);
+                }
+            });
+        })
     }
 }
