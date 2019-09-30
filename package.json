@@ -13,7 +13,7 @@
   },
   "scripts": {
     "prepack": "npm run build",
-    "build": "rimraf out docs && tsc && chmod a+x ./out/cli.js",
+    "build": "rm -rf out docs || rmdir out docs /s /q && tsc && chmod a+x ./out/cli.js",
     "doc": "typedoc --out docs ./src/",
     "prepare-test": "cd test/test-project && npm install && rimraf package-lock.json",
     "test": "npm run build && cd test/test-project && npm run ui-test"
@@ -42,7 +42,6 @@
     "@types/node": "^11.13.10",
     "@types/request": "^2.48.1",
     "mocha": "^6.1.4",
-    "rimraf": "^3.0.0",
     "ts-essentials": "^3.0.2",
     "typedoc": "^0.15.0",
     "typescript": "^3.6.3"
