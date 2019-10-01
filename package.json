@@ -1,6 +1,6 @@
 {
   "name": "vscode-extension-tester",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "Webdriver Testing for VSCode Extensions",
   "main": "out/extester.js",
   "types": "out/extester.d.ts",
@@ -58,6 +58,7 @@
     "request": "^2.88.0",
     "selenium-webdriver": "^3.0.0",
     "targz": "^1.0.1",
+    "ts-essentials": "^3.0.2",
     "unzip-stream": "^0.3.0",
     "vsce": "^1.66.0"
   },
