@@ -9,13 +9,11 @@ import * as glob from 'glob';
  * Mocha runner wrapper
  */
 export class VSRunner {
-    private mocha: Mocha;
     private chromeBin: string;
     private customSettings: Object;
     private codeVersion: string;
 
     constructor(bin: string, codeVersion: string, customSettings: Object = {}) {
-        this.mocha = new Mocha();
         this.chromeBin = bin;
         this.customSettings = customSettings;
         this.codeVersion = codeVersion;
@@ -27,6 +25,8 @@ export class VSRunner {
      * @returns promise which resolves with number of failures
      */
     runTests(testFilesPattern: string): Promise<number> {
+        const mocha = new Mocha();
+
         let self = this;
         let browser: VSBrowser = new VSBrowser(this.codeVersion, this.customSettings);
         const universalPattern = testFilesPattern.replace(/'/g, '');
@@ -34,11 +34,11 @@ export class VSRunner {
 
         testFiles.forEach((file) => {
             if (fs.existsSync(file) && file.substr(-3) === '.js') {
-                this.mocha.addFile(file);
+                mocha.addFile(file);
             }
         });
 
-        this.mocha.suite.afterEach(async function () {
+        mocha.suite.afterEach(async function () {
             if (this.currentTest && this.currentTest.state !== 'passed') {
                 try {
                     await browser.takeScreenshot(this.currentTest.fullTitle());
@@ -48,20 +48,20 @@ export class VSRunner {
             }
         });
 
-        this.mocha.suite.beforeAll(async function () {
+        mocha.suite.beforeAll(async function () {
             this.timeout(15000);
             await browser.start(self.chromeBin);
             await browser.waitForWorkbench();
             await new Promise((res) => { setTimeout(res, 2000); });
         });
 
-        this.mocha.suite.afterAll(async function() {
+        mocha.suite.afterAll(async function() {
             this.timeout(15000);
             await browser.quit();
         });
 
         return new Promise((resolve) => {
-            this.mocha.run((failures) => {
+            mocha.run((failures) => {
                 resolve(failures);
             });
         })

@@ -90,6 +90,23 @@ export class ExTester {
     }
 
     /**
+    * Uninstalls extension from vscode
+    * @param extensionId id of extension to be uninstalled. If id is null or undefined, the function will use package.json
+    * to determine id. 
+    */
+    uninstallExtension(extensionId?: string): void {
+        this.code.uninstallExtension(extensionId);
+    }
+
+    /**
+     * Get list of all extensions
+     * @returns promise which resolves to Set of extensions
+     */
+    listExtensions(): Promise<Set<string>> {
+        return this.code.listExtensions();
+    }
+
+    /**
      * Download the matching chromedriver for a given VS Code version
      * @param vscodeVersion selected versio nof VSCode, default latest
      * @param vscodeStream VSCode release stream, default stable

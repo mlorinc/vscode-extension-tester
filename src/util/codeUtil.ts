@@ -4,6 +4,8 @@ import request = require("request");
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as child_process from 'child_process';
+import * as readline from 'readline';
+import * as stream from 'stream';
 import { VSRunner } from "../suite/runner";
 import { Unpack } from "./unpack";
 
@@ -48,7 +50,7 @@ export class CodeUtil {
         const headers = {
             'user-agent': 'nodejs'
         };
-    
+
         return new Promise<string>((resolve, reject) => {
             request.get({ url: apiUrl, headers: headers }, (error, response, body) => {
                 if (!error && response && response.statusCode >= 400) {
@@ -83,7 +85,7 @@ export class CodeUtil {
             const url = ['https://vscode-update.azurewebsites.net', version, this.downloadPlatform, quality].join('/');
             const isTarGz = this.downloadPlatform.indexOf('linux') > -1;
             const fileName = `${path.basename(url)}.${isTarGz ? 'tar.gz' : 'zip'}`;
-    
+
             console.log(`Downloading VS Code from: ${url}`);
             await new Promise<void>((resolve) => {
                 request.get(url)
@@ -91,7 +93,7 @@ export class CodeUtil {
                     .on('close', resolve);
             });
             console.log(`Downloaded VS Code into ${path.join(this.downloadFolder, fileName)}`);
-    
+
             console.log(`Unpacking VS Code into ${this.downloadFolder}`);
             let target = this.downloadFolder;
             if (process.platform === 'win32') {
@@ -112,9 +114,62 @@ export class CodeUtil {
         const pjson = require(path.resolve('package.json'));
         const vsixPath = path.resolve(vsix ? vsix : `${pjson.name}-${pjson.version}.vsix`);
         const command = `${this.cliEnv} ${this.executablePath} ${this.cliPath} --install-extension ${vsixPath}`;
-        
+
         console.log(`Installing ${pjson.name}-${pjson.version}.vsix`);
         child_process.execSync(command, { stdio: 'inherit' });
+    }
+
+    /**
+     * Uninstalls extension from vscode
+     * @param extensionId id of extension to be uninstalled. If id is null or undefined, the function will use package.json
+     * to determine id. 
+     */
+    uninstallExtension(extensionId?: string): void {
+        if (extensionId == null) {
+            const pjson = require(path.resolve('package.json'));
+            extensionId = `${pjson.publisher}.${pjson.name}`;
+        }
+
+        const command = `${this.cliEnv} ${this.executablePath} ${this.cliPath} --uninstall-extension ${extensionId}`;
+        console.log(`Uninstalling ${extensionId}`);
+        child_process.execSync(command, { stdio: 'inherit' });
+    }
+
+    /**
+     * Get list of all extensions
+     * @returns promise which resolves to Set of extensions
+     */
+    listExtensions(): Promise<Set<string>> {
+        let stdout: stream.Readable;
+        let reader: readline.Interface;
+
+        const command = `${this.cliEnv} ${this.executablePath} ${this.cliPath} --list-extensions`;
+        const ps = child_process.spawn(command, { stdio: 'inherit' });
+
+        return new Promise((resolve, reject) => {
+            // Check if process was spawned
+            ps.on('error', reject);
+
+            if (ps.stdout != null) {
+                stdout = ps.stdout;
+                reader = readline.createInterface({ input: stdout });
+
+                const extensions: Set<string> = new Set<string>();
+
+                ps.on('exit', (code?: number, signal?: string) => {
+                    if (code == null || code != 0) {
+                        reject(`Code process finished with error. Return code: ${code}`);
+                    }
+                    reader.close();
+                });
+
+                reader.on('close', () => resolve(extensions));
+                reader.on('line', extensions.add);
+            }
+            else {
+                reject('Could not get extension list');
+            }
+        });
     }
 
     packageExtension(): void {
@@ -146,7 +201,7 @@ export class CodeUtil {
         Object.assign(finalEnv, process.env);
         const key = 'PATH';
         finalEnv[key] = [this.downloadFolder, process.env[key]].join(path.delimiter);
-    
+
         process.env = finalEnv;
         process.env.TEST_RESOURCES = this.downloadFolder;
         const runner = new VSRunner(this.executablePath, literalVersion, this.parseSettings(settings));
