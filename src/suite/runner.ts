@@ -33,7 +33,7 @@ export class VSRunner {
         const testFiles = glob.sync(universalPattern);
 
         testFiles.forEach((file) => {
-            if (fs.existsSync(file) && file.substr(-3) === '.js') {
+            if (fs.existsSync(file) && file.endsWith('.js')) {
                 mocha.addFile(file);
             }
         });
