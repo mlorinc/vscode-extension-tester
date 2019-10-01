@@ -32,7 +32,7 @@ export class VSBrowser {
         if (fs.existsSync(userSettings)) {
             fs.removeSync(path.join(this.storagePath, 'settings'));
         }
-        let defaultSettings = { 
+        let defaultSettings = {
             "window.titleBarStyle": "custom",
             "workbench.editor.enablePreview": false,
             "window.restoreFullscreen": true,
@@ -54,7 +54,11 @@ export class VSBrowser {
         this._driver = await new Builder()
             .forBrowser('chrome')
             .setChromeOptions(new Options().setChromeBinaryPath(codePath)
-            .addArguments(`--extensionDevelopmentPath=${process.cwd()}`, `--user-data-dir=${path.join(this.storagePath, 'settings')}`))
+                .addArguments(
+                    `--extensionDevelopmentPath=/dev/null}`,
+                    `--user-data-dir=${path.join(this.storagePath, 'settings')}`,
+                    `--extensions-dir=${path.join(this.storagePath, 'VSCode-linux-x64', 'resources', 'app', 'extensions')}`
+                ))
             .build();
         VSBrowser._instance = this;
         AbstractElement.loadLocators(this);

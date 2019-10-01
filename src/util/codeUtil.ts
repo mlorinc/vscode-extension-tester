@@ -113,7 +113,7 @@ export class CodeUtil {
     installExtension(vsix?: string): void {
         const pjson = require(path.resolve('package.json'));
         const vsixPath = path.resolve(vsix ? vsix : `${pjson.name}-${pjson.version}.vsix`);
-        const command = `${this.cliEnv} ${this.executablePath} ${this.cliPath} --install-extension ${vsixPath}`;
+        const command = `${this.cliEnv} ${this.executablePath} ${this.cliPath} --extensions-dir=${path.join(this.codeFolder, 'resources', 'app', 'extensions')} --install-extension ${vsixPath}`;
 
         console.log(`Installing ${pjson.name}-${pjson.version}.vsix`);
         child_process.execSync(command, { stdio: 'inherit' });
@@ -130,8 +130,7 @@ export class CodeUtil {
             extensionId = `${pjson.publisher}.${pjson.name}`;
         }
 
-        const command = `${this.cliEnv} ${this.executablePath} ${this.cliPath} --uninstall-extension ${extensionId}`;
-        console.log(`Uninstalling ${extensionId}`);
+        const command = `${this.cliEnv} ${this.executablePath} ${this.cliPath} --extensions-dir=${path.join(this.codeFolder, 'resources', 'app', 'extensions')} --uninstall-extension ${extensionId}`;
         child_process.execSync(command, { stdio: 'inherit' });
     }
 
@@ -143,13 +142,26 @@ export class CodeUtil {
         let stdout: stream.Readable;
         let reader: readline.Interface;
 
-        const command = `${this.cliEnv} ${this.executablePath} ${this.cliPath} --list-extensions`;
-        const ps = child_process.spawn(command, { stdio: 'inherit' });
+        const cliEnvEqIndex = this.cliEnv.indexOf('=');
+
+        if (cliEnvEqIndex == -1) {
+            throw new Error(`Invalid env varaible: ${this.cliEnv}`);
+        }
+
+        const env = {
+            [this.cliEnv.substring(0, cliEnvEqIndex)]: this.cliEnv.substring(cliEnvEqIndex + 1)
+        };
+
+        const ps = child_process.spawn(this.executablePath, [this.cliPath, `--extensions-dir=${path.join(this.codeFolder, 'resources', 'app', 'extensions')}`,"--list-extensions"],
+            {
+                env: { ...process.env, ...env }
+            });
 
         return new Promise((resolve, reject) => {
             // Check if process was spawned
             ps.on('error', reject);
 
+            // Execute only if there is no error. Otherwise process on error will be triggered.
             if (ps.stdout != null) {
                 stdout = ps.stdout;
                 reader = readline.createInterface({ input: stdout });
@@ -158,16 +170,13 @@ export class CodeUtil {
 
                 ps.on('exit', (code?: number, signal?: string) => {
                     if (code == null || code != 0) {
-                        reject(`Code process finished with error. Return code: ${code}`);
+                        reject(`Code process finished with error. Return code: ${code}, Signal: ${signal}`);
                     }
                     reader.close();
                 });
 
                 reader.on('close', () => resolve(extensions));
-                reader.on('line', extensions.add);
-            }
-            else {
-                reject('Could not get extension list');
+                reader.on('line', line => extensions.add(line));
             }
         });
     }

@@ -54,6 +54,7 @@ export class ExtensionsViewItem extends ViewItem {
      */
     async isInstalled(): Promise<boolean> {
         const button = await this.findElement(ExtensionsViewItem.locators.ExtensionsViewItem.install);
+
         if ((await button.getAttribute('class')).indexOf('disabled') > -1) {
             return true;
         }
