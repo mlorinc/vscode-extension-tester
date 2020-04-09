@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { QuickOpenBox, Workbench, QuickPickItem, InputBox, StatusBar, TitleBar, EditorView } from "vscode-extension-tester";
 
 describe('QuickOpenBox', () => {
-    let input: QuickOpenBox;
+    let input: InputBox;
 
     before(async () => {
         input = await new Workbench().openCommandPrompt();
@@ -32,7 +32,7 @@ describe('QuickOpenBox', () => {
         this.timeout(5000);
         await input.setText('');
         const holder = await input.getPlaceHolder();
-        expect(holder).has.string(`Type '?' to get help`);
+        expect(holder).has.string(`Search files by name (append : to go to line or @ to go to symbol)`);
     });
 
     it('hasProgress checks for progress bar', async () => {
@@ -66,7 +66,7 @@ describe('QuickPickItem', () => {
 
     it('getIndex returns the index of the item', () => {
         const index = item.getIndex();
-        expect(index).equals(1);
+        expect(index).equals(0);
     });
 
     it('select works', async () => {

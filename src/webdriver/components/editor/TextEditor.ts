@@ -1,5 +1,5 @@
 import { ContentAssist } from "../../../extester";
-import { Key } from "selenium-webdriver";
+import { Key, WebElement, until } from "selenium-webdriver";
 import { fileURLToPath } from "url";
 import * as clipboard from 'clipboardy';
 import { StatusBar } from "../statusBar/StatusBar";
@@ -45,9 +45,25 @@ export class TextEditor extends Editor {
      * @param open true to open, false to close
      * @returns Promise resolving to ContentAssist object when opening, void otherwise
      */
-    async toggleContentAssist(open: boolean): Promise<ContentAssist | void> {
+    async toggleContentAssist(open: boolean, timeout?: number): Promise<ContentAssist | void> {
         const inputarea = await this.findElement(TextEditor.locators.Editor.inputArea);
-        const assist = await this.findElement(TextEditor.locators.ContentAssist.constructor)
+        const assist: WebElement | null = await this.findElement(TextEditor.locators.ContentAssist.constructor).catch(async (e) => {
+            // suggest has never been toggled
+            // if open - toggle it
+            if (open) {
+                await inputarea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
+                return this.getDriver().wait(until.elementLocated(TextEditor.locators.ContentAssist.constructor), timeout);
+            }
+            else {
+                // we do not have to do anything
+                return null;
+            }
+        });
+
+        if (assist == null) {
+            return;
+        }
+
         const klass = await assist.getAttribute('class');
         const visibility = await assist.getCssValue('visibility');
 
