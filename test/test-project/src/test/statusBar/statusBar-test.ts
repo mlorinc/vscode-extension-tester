@@ -72,7 +72,7 @@ describe('StatusBar', () => {
 
     it('openLineSelection works', async () => {
         await bar.openLineSelection();
-        const input = await QuickOpenBox.create();
+        const input = await InputBox.create();
         expect(await input.isDisplayed()).is.true;
         await input.cancel();
     });

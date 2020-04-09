@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { expect } from 'chai';
-import { EditorView, Workbench, DiffEditor, QuickOpenBox, InputBox } from "vscode-extension-tester";
+import { EditorView, Workbench, DiffEditor, InputBox } from "vscode-extension-tester";
 
 describe('DiffEditor', async () => {
     let editor: DiffEditor;
@@ -20,7 +20,7 @@ describe('DiffEditor', async () => {
         await new Promise((res) => { setTimeout(res, 500); });
         
         await new Workbench().executeCommand('File: Compare Active File With...');
-        const quickOpen = new QuickOpenBox();
+        const quickOpen = await InputBox.create();
         await quickOpen.setText('test-file-a.txt');
         await quickOpen.confirm();
         

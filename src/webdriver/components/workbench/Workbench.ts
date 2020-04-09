@@ -8,8 +8,8 @@ import { EditorView } from "../editor/EditorView";
 import { BottomBarPanel } from "../bottomBar/BottomBarPanel";
 import { Notification, StandaloneNotification } from "./Notification";
 import { NotificationsCenter } from "./NotificationsCenter";
-import { QuickOpenBox } from "./input/QuickOpenBox";
 import { SettingsEditor } from "../editor/SettingsEditor";
+import { InputBox } from "./input/InputBox";
 
 /**
  * Handler for general workbench related actions
@@ -105,9 +105,9 @@ export class Workbench extends AbstractElement {
      * Open the VS Code command line prompt
      * @returns Promise resolving to QuickOpenBox object
      */
-    async openCommandPrompt(): Promise<QuickOpenBox> {
+    async openCommandPrompt(): Promise<InputBox> {
         await this.getDriver().actions().sendKeys(Key.F1).perform();
-        return QuickOpenBox.create();
+        return InputBox.create();
     }
 
     /**
