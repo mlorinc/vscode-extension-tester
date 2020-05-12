@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { NotificationsCenter, Workbench, NotificationType, Notification, until } from 'vscode-extension-tester';
+import { NotificationsCenter, Workbench, NotificationType, Notification, until, WebDriver, VSBrowser } from 'vscode-extension-tester';
 
 describe('NotificationsCenter', () => {
     let center: NotificationsCenter;
@@ -7,12 +7,12 @@ describe('NotificationsCenter', () => {
     before(async () => {
         center = await new Workbench().openNotificationsCenter();
     });
-    
+
     after(async () => {
         await center.close();
     });
 
-    it('getNotifications works', async function() {
+    it('getNotifications works', async function () {
         this.timeout(4000);
         await new Workbench().executeCommand('hello world');
         await center.getDriver().sleep(500);
@@ -39,12 +39,16 @@ describe('NotificationsCenter', () => {
     describe('Notification', () => {
         let notification: Notification;
 
-        before(async () => {
+        async function createNotification() {
             await new Workbench().executeCommand('test notification');
             await center.getDriver().sleep(200);
             center = await new Workbench().openNotificationsCenter();
             notification = (await center.getNotifications(NotificationType.Any))[0];
-        });
+            expect(notification).not.to.be.undefined;
+            return notification;
+        }
+
+        before(createNotification);
 
         it('getMessage gets the text', async () => {
             const message = await notification.getMessage();
@@ -71,10 +75,18 @@ describe('NotificationsCenter', () => {
             expect(source).has.string('Test Project');
         });
 
-        it('takeAction works', async function() {
+        it('takeAction works', async function () {
             this.timeout(8000);
             const driver = notification.getDriver();
             await notification.takeAction('Yes');
+            await driver.wait(until.stalenessOf(notification));
+        });
+
+        it('dismiss works', async function () {
+            this.timeout(8000);
+            notification = await createNotification();
+            const driver = notification.getDriver();
+            await notification.dismiss();
             await driver.wait(until.stalenessOf(notification));
         });
     });
