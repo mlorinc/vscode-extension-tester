@@ -1,5 +1,5 @@
 import { ViewItem } from "../ViewItem";
-import { until, WebElement } from "selenium-webdriver";
+import { WebElement } from "selenium-webdriver";
 import { ContextMenu } from "../../menu/ContextMenu";
 import { ExtensionsViewSection } from "./ExtensionsViewSection";
 
@@ -81,6 +81,16 @@ export class ExtensionsViewItem extends ViewItem {
         }
         const button = await this.findElement(ExtensionsViewItem.locators.ExtensionsViewItem.install);
         await button.click();
-        await this.getDriver().wait(until.elementIsNotVisible(button));
+        await this.getDriver().wait(async () => await this.isInstalled());
+    }
+
+    async uninstall(): Promise<void> {
+        if (!(await this.isInstalled())) {
+            return;
+        }
+
+        const button = await this.findElement(ExtensionsViewItem.locators.ExtensionsViewItem.uninstall);
+        await button.click();
+        await this.getDriver().wait(async () => !(await this.isInstalled()));
     }
 }

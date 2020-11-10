@@ -218,6 +218,7 @@ export interface Locators {
         author: By
         description: By
         install: By
+        uninstall: By
         manage: By
     }
     ScmView: {

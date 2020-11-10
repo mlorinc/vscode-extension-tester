@@ -74,4 +74,37 @@ describe('ExtensionsView', () => {
             await menu.close();
         });
     });
+
+    describe('ExtensionsViewItem.install', async function() {
+        let section: ExtensionsViewSection;
+        let extension: ExtensionsViewItem;
+    
+        let sectionTitle = 'Enabled';
+        if (VSBrowser.browserName === 'vscode' && VSBrowser.instance.version >= '1.48.0') {
+            sectionTitle = 'Installed'
+        }
+    
+        before(async () => {
+            const view = await new ActivityBar().getViewControl('Extensions').openView();
+            section = await view.getContent().getSection(sectionTitle) as ExtensionsViewSection;
+        });
+    
+        after(async function()  {
+            await new ActivityBar().getViewControl('Extensions').closeView();
+            await new EditorView().closeAllEditors();
+        });
+
+        it('Install works', async function () {
+            this.timeout(70000);
+            extension = await section.findItem('esbenp.prettier-vscode');
+            await extension.install();
+            expect(await extension.isInstalled()).to.be.true; 
+        });
+
+        it('Uninstall works', async function () {
+            this.timeout(70000);
+            await extension.uninstall();
+            expect(await extension.isInstalled()).to.be.false; 
+        });
+    });
 });

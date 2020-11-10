@@ -218,6 +218,7 @@ const sideBar = {
         author: By.className('author'),
         description: By.className('description'),
         install: By.className('install'),
+        uninstall: By.className('uninstall'),
         manage: By.className('manage')
     },
     ScmView: {
