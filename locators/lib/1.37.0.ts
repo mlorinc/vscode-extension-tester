@@ -353,5 +353,5 @@ export const locators: Locators = {
     ...workbench,
     ...input,
     ...dialog,
-    ...welcome
+    ...welcome,
 }

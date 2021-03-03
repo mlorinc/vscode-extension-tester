@@ -1,5 +1,5 @@
+import { LocatorDiff as ILocatorDiff } from "extension-tester-page-objects";
 import { By } from "selenium-webdriver";
-import { DeepPartial } from 'ts-essentials'; 
 
 /**
  * Type definitions for all used locators
@@ -331,10 +331,5 @@ export interface Locators {
     }
 }
 
-/**
- * Definition for locator diff object
- */
-export interface LocatorDiff {
-    locators: DeepPartial<Locators>
-    extras?: Object
-}
+
+export interface LocatorDiff extends ILocatorDiff<Locators> {}

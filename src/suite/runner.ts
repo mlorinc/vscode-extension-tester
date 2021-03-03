@@ -38,7 +38,7 @@ export class VSRunner {
     runTests(testFilesPattern: string, code: CodeUtil, logLevel: logging.Level = logging.Level.INFO): Promise<number> {
         return new Promise(resolve => {
             let self = this;
-            let browser: VSBrowser = new VSBrowser(this.codeVersion, this.customSettings, logLevel);
+            let browser: VSBrowser = new VSBrowser(this.chromeBin, this.codeVersion, this.customSettings, logLevel);
             const universalPattern = testFilesPattern.replace(/'/g, '');
             const testFiles = glob.sync(universalPattern);
     
@@ -60,9 +60,9 @@ export class VSRunner {
             });
     
             this.mocha.suite.beforeAll(async function () {
-                this.timeout(45000);
+                this.timeout(15000);
                 const start = Date.now();
-                await browser.start(self.chromeBin);
+                await browser.start();
                 await browser.waitForWorkbench();
                 await new Promise((res) => { setTimeout(res, 2000); });
                 console.log(`Browser ready in ${Date.now() - start} ms`);

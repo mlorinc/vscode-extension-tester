@@ -45,6 +45,6 @@
     "ts-essentials": "^7.0.0"
   },
   "peerDependencies": {
-    "selenium-webdriver": "^3.0.0"
+    "extension-tester-page-objects": "file:../../extension-tester-page-objects/extension-tester-page-objects-1.0.0.tgz"
   }
 }
