@@ -3,37 +3,64 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import compareVersions = require('compare-versions');
-import { WebDriver, Builder, until, By, initPageObjects, logging } from 'monaco-page-objects';
+import { initPageObjects } from 'monaco-page-objects';
 import { Options } from 'selenium-webdriver/chrome';
 import { getLocatorsPath } from 'vscode-extension-tester-locators';
+import { SeleniumBrowser } from "extension-tester-page-objects";
+import { Builder, By, logging, until, WebDriver } from 'selenium-webdriver';
 
-export class VSBrowser {
+export class VSBrowser extends SeleniumBrowser {
     static readonly baseVersion = '1.37.0';
     static readonly browserName = 'vscode';
-    private storagePath: string;
+    private _storagePath: string;
     private extensionsFolder: string | undefined;
     private customSettings: Object;
     private _driver!: WebDriver;
+    private codePath: string;
     private codeVersion: string;
     private logLevel: logging.Level;
+    private _implicitTimeout: number;
     private static _instance: VSBrowser;
 
-    constructor(codeVersion: string, customSettings: Object = {}, logLevel: logging.Level = logging.Level.INFO) {
-        this.storagePath = process.env.TEST_RESOURCES ? process.env.TEST_RESOURCES : path.resolve('test-resources');
+    constructor(codePath: string, codeVersion: string, customSettings: Object = {}, logLevel: logging.Level = logging.Level.INFO) {
+        super();
+        this._storagePath = process.env.TEST_RESOURCES ? process.env.TEST_RESOURCES : path.resolve('test-resources');
         this.extensionsFolder = process.env.EXTENSIONS_FOLDER ? process.env.EXTENSIONS_FOLDER : undefined;
         this.customSettings = customSettings;
+        this.codePath = codePath;
         this.codeVersion = codeVersion;
+        this._implicitTimeout = 0;
 
         this.logLevel = logLevel;
 
         VSBrowser._instance = this;
     };
 
+    get name(): string {
+        return VSBrowser.browserName;
+    }
+    get screenshotsStoragePath(): string {
+        return path.join(this.storagePath, 'screenshots');
+    }
+    async getImplicitTimeout(): Promise<number> {
+        return this._implicitTimeout;
+    }
+
+    public get storagePath() : string {
+        return this._storagePath;
+    }
+
+    async setImplicitTimeout(value: number): Promise<void> {
+        this._implicitTimeout = value;
+        await this.driver.manage().timeouts().implicitlyWait(value);
+    }
+
     /**
      * Starts the vscode browser from a given path
      * @param codePath path to code binary
      */
-    async start(codePath: string): Promise<VSBrowser> {
+    async start(): Promise<this> {
+        const codePath = this.codePath;
         const userSettings = path.join(this.storagePath, 'settings', 'User');
         if (fs.existsSync(userSettings)) {
             fs.removeSync(path.join(this.storagePath, 'settings'));
@@ -50,7 +77,7 @@ export class VSBrowser {
         }
 
         fs.mkdirpSync(path.join(userSettings, 'globalStorage'));
-        await fs.remove(path.join(this.storagePath, 'screenshots'));
+        await fs.remove(this.screenshotsStoragePath);
         fs.writeJSONSync(path.join(userSettings, 'settings.json'), defaultSettings);
         console.log(`Writing code settings to ${path.join(userSettings, 'settings.json')}`);
         
@@ -81,6 +108,7 @@ export class VSBrowser {
             .setChromeOptions(options)
             .build();
         VSBrowser._instance = this;
+        SeleniumBrowser.instance = this;
 
         initPageObjects(this.codeVersion, VSBrowser.baseVersion, getLocatorsPath(), this._driver, VSBrowser.browserName);
         return this;
@@ -136,7 +164,7 @@ export class VSBrowser {
      */
     async takeScreenshot(name: string): Promise<void> {
         const data = await this._driver.takeScreenshot();
-        const dir = path.join(this.storagePath, 'screenshots');
+        const dir = this.screenshotsStoragePath;
         fs.mkdirpSync(dir);
         fs.writeFileSync(path.join(dir, `${name}.png`), data, 'base64');
     }

@@ -1,6 +1,6 @@
 import { AbstractElement } from "./AbstractElement";
 import { ContextMenu } from "..";
-import { Button, until } from 'selenium-webdriver';
+import { Button, until } from "selenium-webdriver";
 
 /**
  * Abstract element that has a context menu

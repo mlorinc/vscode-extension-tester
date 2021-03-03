@@ -1,8 +1,7 @@
 import { WebDriver } from 'selenium-webdriver';
-import { AbstractElement } from './components/AbstractElement';
-import { LocatorLoader } from './locators/loader';
+import { VSCodeAbstractElement } from './components/AbstractElement';
+import { LocatorLoader } from "./locators/loader";
 
-export * from 'selenium-webdriver';
 export * from './locators/locators';
 
 export * from './components/menu/Menu';
@@ -55,6 +54,8 @@ export * from './components/dialog/ModalDialog';
 
 export * from './conditions/WaitForAttribute';
 
+export { VSCodeAbstractElement as AbstractElement } from './components/AbstractElement';
+
 /**
  * Initialize the page objects for your tests
  * 
@@ -67,5 +68,5 @@ export * from './conditions/WaitForAttribute';
 export function initPageObjects(currentVersion: string, baseVersion: string, locatorFolder: string, driver: WebDriver, browserID: string) {
     const locators = new LocatorLoader(currentVersion, baseVersion, locatorFolder).loadLocators();
 
-    AbstractElement.init(locators, driver, browserID, currentVersion);
+    VSCodeAbstractElement.init(locators, driver, browserID, currentVersion);
 }

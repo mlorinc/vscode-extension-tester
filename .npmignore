@@ -1,0 +1,11 @@
+page-objects
+locators
+native
+api-handler
+test
+*.tgz
+*.log
+sample-projects
+out
+.github
+.git

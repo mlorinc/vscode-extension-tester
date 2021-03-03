@@ -4,3 +4,5 @@ test-resources
 .vscode
 docs
 resources/api-handler.vsix
+vscode-extension-tester*.tgz
+package

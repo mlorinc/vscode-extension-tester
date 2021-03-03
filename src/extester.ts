@@ -10,6 +10,8 @@ export { ReleaseQuality }
 export { MochaOptions } from 'mocha';
 export * from './browser';
 export * from 'monaco-page-objects';
+export { SeleniumBrowser } from 'extension-tester-page-objects';
+export * from 'selenium-webdriver';
 
 export interface SetupOptions {
     /** version of VSCode to test against, defaults to latest */
