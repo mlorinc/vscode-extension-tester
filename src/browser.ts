@@ -19,7 +19,8 @@ export class VSBrowser extends SeleniumBrowser {
     private codePath: string;
     private codeVersion: string;
     private logLevel: logging.Level;
-    private _implicitTimeout: number;
+    // @ts-ignore
+    private _findElementTimeout: number;
     private static _instance: VSBrowser;
 
     constructor(codePath: string, codeVersion: string, customSettings: Object = {}, logLevel: logging.Level = logging.Level.INFO) {
@@ -29,10 +30,8 @@ export class VSBrowser extends SeleniumBrowser {
         this.customSettings = customSettings;
         this.codePath = codePath;
         this.codeVersion = codeVersion;
-        this._implicitTimeout = 0;
-
         this.logLevel = logLevel;
-
+        this._findElementTimeout = 0;
         VSBrowser._instance = this;
     };
 
@@ -42,17 +41,16 @@ export class VSBrowser extends SeleniumBrowser {
     get screenshotsStoragePath(): string {
         return path.join(this.storagePath, 'screenshots');
     }
-    async getImplicitTimeout(): Promise<number> {
-        return this._implicitTimeout;
-    }
 
     public get storagePath() : string {
         return this._storagePath;
     }
 
-    async setImplicitTimeout(value: number): Promise<void> {
-        this._implicitTimeout = value;
-        await this.driver.manage().timeouts().implicitlyWait(value);
+    get findElementTimeout(): number {
+        return this.findElementTimeout;
+    }
+    set findElementTimeout(value: number) {
+        this._findElementTimeout = value;
     }
 
     /**
