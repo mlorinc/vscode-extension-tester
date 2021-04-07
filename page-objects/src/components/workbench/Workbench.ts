@@ -1,5 +1,5 @@
 import { AbstractElement } from "../AbstractElement";
-import { WebElement, Key, until } from "selenium-webdriver";
+import { WebElement, Key, until, By } from "selenium-webdriver";
 import { TitleBar } from "../menu/TitleBar";
 import { SideBarView } from "../sidebar/SideBarView";
 import { ActivityBar } from "../activityBar/ActivityBar";
@@ -11,11 +11,18 @@ import { NotificationsCenter } from "./NotificationsCenter";
 import { QuickOpenBox } from "./input/QuickOpenBox";
 import { SettingsEditor } from "../editor/SettingsEditor";
 import { InputBox } from "./input/InputBox";
+import { DialogHandler } from "vscode-extension-tester-native";
+import * as path from 'path';
+import { SeleniumBrowser } from "extension-tester-page-objects";
+import { Editor } from "../editor/Editor";
+import { TextEditor } from "../editor/TextEditor";
 
 /**
  * Handler for general workbench related actions
  */
 export class Workbench extends AbstractElement {
+    protected static currentPath: string = process.cwd();
+
     constructor() {
         super(Workbench.locators.Workbench.constructor);
     }
@@ -124,4 +131,67 @@ export class Workbench extends AbstractElement {
         await prompt.setText(`>${command}`);
         await prompt.confirm();
     }
+
+    async openFolder(folderPath: string, handleOnly: boolean = false): Promise<void> {
+        if (!handleOnly) {
+            await new TitleBar().select('File', 'Open Folder...');
+        }
+
+        const dialog = await DialogHandler.getOpenDialog();
+        
+        if (!path.isAbsolute(folderPath)) {
+            folderPath = path.join(Workbench.currentPath, folderPath);
+        }
+
+        await dialog.selectPath(folderPath);
+        await dialog.confirm();
+        await openFolderWaitCondition(path.basename(folderPath), 40000);
+        Workbench.currentPath = folderPath;
+    }
+
+    async openFile(filePath: string, handleOnly: boolean = false): Promise<Editor> {
+        if (!handleOnly) {
+            await new TitleBar().select('File', 'Open File...');
+        }
+
+        const dialog = await DialogHandler.getOpenDialog();
+        
+        if (!path.isAbsolute(filePath)) {
+            filePath = path.join(Workbench.currentPath, filePath);
+        }
+
+        await dialog.selectPath(filePath);
+        await dialog.confirm();
+
+        return await this.getDriver().wait(async () => {
+            const editorTab = await new EditorView().getActiveTab();
+
+            if (editorTab === undefined) {
+                return undefined;
+            }
+
+            if (filePath.includes(await editorTab.getTitle())) {
+                const editor = new TextEditor();
+                const tab = await editor.getTab();
+                if (await tab.getId() === await editorTab.getId()) {
+                    return editor;
+                }
+            }
+
+            return undefined;
+        }, 40000, `Could not find open editor for "${filePath}".`) as Editor;
+    }
+}
+
+async function openFolderWaitCondition(folderName: string, timeout?: number): Promise<void> {
+	await SeleniumBrowser.instance.driver.wait(async () => {
+		try {
+			const section = await new SideBarView().getContent().getSection(folderName);
+			const html = await section.getDriver().wait(until.elementLocated(By.css("html")), 150);
+			return await section.isDisplayed() && await section.isEnabled() && html;
+		}
+		catch {
+			return false;
+		}
+	}, timeout, `Timed out: openFolderWaitCondition('${folderName}', ${timeout})`);
 }
