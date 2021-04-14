@@ -23,7 +23,8 @@ export abstract class Editor extends ElementWithContexMenu {
      * Get the corresponding editor tab
      */
     async getTab(): Promise<EditorTab> {
-        const element = this.enclosingItem as EditorView | EditorGroup;
+        const element = await this.getDriver().wait(
+            () => this.enclosingItem, 5000, 'Could not get EditorView | EditorGroup') as EditorView | EditorGroup;
         return element.getActiveTab() as Promise<EditorTab>;
     }
 }
