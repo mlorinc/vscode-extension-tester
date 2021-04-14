@@ -1,6 +1,7 @@
 import { ElementWithContexMenu } from "../ElementWithContextMenu";
 import { AbstractElement } from "../AbstractElement";
 import { WebElement, By } from "selenium-webdriver";
+import { ITreeItem } from "extension-tester-page-objects";
 
 /**
  * Arbitrary item in the side bar view
@@ -20,7 +21,7 @@ export abstract class ViewItem extends ElementWithContexMenu {
 /**
  * Abstract representation of a row in the tree inside a view content section
  */
-export abstract class TreeItem extends ViewItem {
+export abstract class TreeItem extends ViewItem implements ITreeItem {
     /**
      * Retrieves the label of this view item
      */
@@ -56,7 +57,7 @@ export abstract class TreeItem extends ViewItem {
      * Find children of an item, will try to expand the item in the process
      * @returns Promise resolving to array of TreeItem objects, empty array if item has no children
      */
-    abstract getChildren(): Promise<TreeItem[]>
+    abstract getChildren(): Promise<ITreeItem[]>
 
     /**
      * Finds if the item is expandable/collapsible
@@ -77,7 +78,7 @@ export abstract class TreeItem extends ViewItem {
      * Find a child item with the given name
      * @returns Promise resolving to TreeItem object if the child item exists, undefined otherwise
      */
-    async findChildItem(name: string): Promise<TreeItem | undefined> {
+    async findChildItem(name: string): Promise<ITreeItem | undefined> {
         const children = await this.getChildren();
         for (const item of children) {
             if (await item.getLabel() === name) {
@@ -131,6 +132,10 @@ export abstract class TreeItem extends ViewItem {
         } else {
             return undefined;
         }
+    }
+
+    async isSelected(): Promise<boolean> {
+        return (await this.getAttribute('class')).includes('selected');
     }
 
     /**

@@ -1,13 +1,22 @@
 import { TreeItem } from "../../ViewItem";
-import { TreeSection } from "../TreeSection";
 import { WebElement } from "selenium-webdriver";
+import { IDefaultTreeItem, ITreeItem } from "extension-tester-page-objects";
+import { DefaultTreeSection } from "../../../..";
 
 /**
  * Default tree item base on the items in explorer view
  */
-export class DefaultTreeItem extends TreeItem {
-    constructor(element: WebElement, viewPart: TreeSection) {
+export class DefaultTreeItem extends TreeItem implements IDefaultTreeItem {
+    constructor(element: WebElement, viewPart: DefaultTreeSection) {
         super(element, viewPart);
+    }
+
+    async isFile(): Promise<boolean> {
+        return await this.isExpandable() === false;
+    }
+    
+    async isFolder(): Promise<boolean> {
+        return await this.isExpandable() === true;
     }
 
     async getLabel(): Promise<string> {
@@ -24,9 +33,9 @@ export class DefaultTreeItem extends TreeItem {
         return twistieClass.indexOf('collapsed') < 0;
     }
 
-    async getChildren(): Promise<TreeItem[]> {
+    async getChildren(): Promise<ITreeItem[]> {
         const rows = await this.getChildItems(DefaultTreeItem.locators.DefaultTreeSection.itemRow);
-        const items = await Promise.all(rows.map(async row => new DefaultTreeItem(row, this.enclosingItem as TreeSection).wait()));
+        const items = await Promise.all(rows.map(async row => new DefaultTreeItem(row, this.enclosingItem as DefaultTreeSection).wait()));
         return items;
     }
 

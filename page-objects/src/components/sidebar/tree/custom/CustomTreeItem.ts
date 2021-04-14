@@ -1,12 +1,12 @@
 import { TreeItem } from "../../ViewItem";
-import { TreeSection } from "../TreeSection";
 import { WebElement } from "selenium-webdriver";
+import { CustomTreeSection } from "./CustomTreeSection";
 
 /**
  * View item in a custom-made content section (e.g. an extension tree view)
  */
 export class CustomTreeItem extends TreeItem {
-    constructor(element: WebElement, viewPart: TreeSection) {
+    constructor(element: WebElement, viewPart: CustomTreeSection) {
         super(element, viewPart);
     }
 
@@ -25,7 +25,7 @@ export class CustomTreeItem extends TreeItem {
 
     async getChildren(): Promise<TreeItem[]> {
         const rows = await this.getChildItems(CustomTreeItem.locators.DefaultTreeSection.itemRow);
-        const items = await Promise.all(rows.map(async row => new CustomTreeItem(row, this.enclosingItem as TreeSection).wait()));
+        const items = await Promise.all(rows.map(async row => new CustomTreeItem(row, this.enclosingItem as CustomTreeSection).wait()));
         return items;
     }
 
