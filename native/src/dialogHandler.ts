@@ -1,6 +1,5 @@
-import { OpenDialog, LinuxOpenDialog, WindowsOpenDialog, MacOpenDialog } from "./openDialog";
-
-export { OpenDialog } from './openDialog';
+import { IOpenDialog } from "extension-tester-page-objects";
+import { LinuxOpenDialog, WindowsOpenDialog, MacOpenDialog } from "./openDialog";
 
 /**
  * Handles native dialogs for different platforms
@@ -13,7 +12,7 @@ export class DialogHandler {
      * 
      * @param delay time to wait for the dialog to open in milliseconds
      */
-    static async getOpenDialog(delay: number = 4000): Promise<OpenDialog> {
+    static async getOpenDialog(delay: number = 4000): Promise<IOpenDialog> {
         await new Promise((res) => { setTimeout(res, delay); });
         switch (process.platform) {
             case 'win32': {

@@ -1,21 +1,10 @@
-import { NativeDialog } from "./nativeDialog";
 import * as pathj from 'path';
 import * as fs from 'fs-extra';
 import * as clipboard from 'clipboardy';
 import { keyboard, Key } from '@nut-tree/nut-js';
+import { IOpenDialog } from "extension-tester-page-objects";
 
-/**
- * General open native dialog
- */
-export interface OpenDialog extends NativeDialog {
-    /**
-     * Enters the given path into the dialog selection
-     * @param path path to select
-     */
-    selectPath(path: string): void | Promise<void>;
-}
-
-abstract class AbstractOpenDialog implements OpenDialog {
+abstract class AbstractOpenDialog implements IOpenDialog {
     selectPath(path: string): void | Promise<void> {
         throw new Error("Method not implemented.");
     }
