@@ -81,10 +81,11 @@ program.command('run-tests <testFiles>')
     .option('-u, --uninstall_extension', 'Uninstall the extension after the test run', false)
     .option('-m, --mocha_config <mocharc.js>', 'Path to Mocha configuration file')
     .option('-l, --log_level <level>', 'Log messages from webdriver with a given level', 'Info')
+    .option('-f', '--open_folder <folder>', 'Open folder in VS Code.')
     .action(withErrors(async (testFiles, cmd) => {
         const extest = new ExTester(cmd.storage, codeStream(cmd.type), cmd.extensions_dir);
         const vscodeVersion = loadCodeVersion(cmd.code_version);
-        await extest.runTests(testFiles, {vscodeVersion, settings: cmd.code_settings, cleanup: cmd.uninstall_extension, config: cmd.mocha_config, logLevel: cmd.log_level});
+        await extest.runTests(testFiles, {vscodeVersion, settings: cmd.code_settings, cleanup: cmd.uninstall_extension, config: cmd.mocha_config, logLevel: cmd.log_level, openFolder: cmd.open_folder});
     }));
 
 program.command('setup-and-run <testFiles>')
@@ -99,10 +100,11 @@ program.command('setup-and-run <testFiles>')
     .option('-m, --mocha_config <mocharc.js>', 'Path to Mocha configuration file')
     .option('-i, --install_dependencies', 'Automatically install extensions your extension depends on', false)
     .option('-l, --log_level <level>', 'Log messages from webdriver with a given level', 'Info')
+    .option('-f', '--open_folder <folder>', 'Open folder in VS Code.')
     .action(withErrors(async (testFiles, cmd) => {
         const extest = new ExTester(cmd.storage, codeStream(cmd.type), cmd.extensions_dir);
         const vscodeVersion = loadCodeVersion(cmd.code_version);
-        await extest.setupAndRunTests(testFiles, vscodeVersion, {useYarn: cmd.yarn, installDependencies: cmd.install_dependencies}, {settings: cmd.code_settings, cleanup: cmd.uninstall_extension, config: cmd.mocha_config, logLevel: cmd.log_level});
+        await extest.setupAndRunTests(testFiles, vscodeVersion, {useYarn: cmd.yarn, installDependencies: cmd.install_dependencies}, {settings: cmd.code_settings, cleanup: cmd.uninstall_extension, config: cmd.mocha_config, logLevel: cmd.log_level, openFolder: cmd.open_folder});
     }));
 
 program.parse(process.argv);

@@ -1,10 +1,11 @@
-import { AbstractElement } from "../AbstractElement";
-import { MenuItem } from "./MenuItem";
+import { IMenu, IMenuItem } from "extension-tester-page-objects";
+import { Key } from "selenium-webdriver";
+import { AbstractElement } from "../../";
 
 /**
  * Abstract element representing a menu
  */
-export abstract class Menu extends AbstractElement {
+export abstract class Menu extends AbstractElement implements IMenu {
     
     /**
      * Find whether the menu has an item of a given name
@@ -20,13 +21,13 @@ export abstract class Menu extends AbstractElement {
      * Return a menu item of a given name, undefined if not found
      * @param name name of the item to search for
      */
-    abstract getItem(name: string): Promise<MenuItem | undefined>;
+    abstract getItem(name: string): Promise<IMenuItem | undefined>;
 
     /**
      * Get all items of a menu
      * @returns array of MenuItem object representing the menu items
      */
-    abstract getItems(): Promise<MenuItem[]>;
+    abstract getItems(): Promise<IMenuItem[]>;
 
     /**
      * Recursively select an item with a given path.
@@ -42,8 +43,8 @@ export abstract class Menu extends AbstractElement {
      * @returns void if the last clicked item is a leaf, Menu item representing
      * its submenu otherwise
      */
-    async select(...path: string[]): Promise<Menu | undefined> {
-        let parent: Menu = this;
+    async select(...path: string[]): Promise<IMenu | undefined> {
+        let parent: IMenu = this;
         for (const label of path) {
             console.log(`Selecting ${label}`);
 			const item = await parent.getItem(label);
@@ -62,5 +63,21 @@ export abstract class Menu extends AbstractElement {
             }
         }
         return parent;
+    }
+
+    async close(): Promise<void> {
+        await this.getDriver().wait(async () => {
+            try {
+                if (await this.isDisplayed() === false) {
+                    return true;
+                }
+
+                await this.sendKeys(Key.ESCAPE);
+                return false;
+            }
+            catch {
+                return true;
+            }
+        }, 5000, 'Could not close menu.');
     }
 }

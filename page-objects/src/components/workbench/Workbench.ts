@@ -1,30 +1,53 @@
-import { AbstractElement } from "../AbstractElement";
-import { WebElement, Key, until, By } from "selenium-webdriver";
-import { TitleBar } from "../menu/TitleBar";
-import { SideBarView } from "../sidebar/SideBarView";
-import { ActivityBar } from "../activityBar/ActivityBar";
-import { StatusBar } from "../statusBar/StatusBar";
-import { EditorView } from "../editor/EditorView";
-import { BottomBarPanel } from "../bottomBar/BottomBarPanel";
-import { Notification, StandaloneNotification } from "./Notification";
-import { NotificationsCenter } from "./NotificationsCenter";
-import { QuickOpenBox } from "./input/QuickOpenBox";
-import { SettingsEditor } from "../editor/SettingsEditor";
-import { InputBox } from "./input/InputBox";
-import { DialogHandler } from "vscode-extension-tester-native";
 import * as path from 'path';
-import { SeleniumBrowser } from "extension-tester-page-objects";
-import { Editor } from "../editor/Editor";
-import { TextEditor } from "../editor/TextEditor";
+import {
+    AbstractElement,
+    ActivityBar,
+    BottomBarPanel,
+    EditorView,
+    InputBox,
+    NotificationsCenter,
+    parseTitleBar,
+    QuickOpenBox,
+    SettingsEditor,
+    SideBarView,
+    StatusBar,
+    TitleBar
+} from '../..';
+import { DialogHandler } from 'vscode-extension-tester-native';
+import { Key, until, WebElement } from 'selenium-webdriver';
+import { Notification, StandaloneNotification } from './Notification';
+import {
+    IOpenDialog,
+    PathUtils,
+    SeleniumBrowser,
+} from 'extension-tester-page-objects';
 
 /**
  * Handler for general workbench related actions
  */
 export class Workbench extends AbstractElement {
-    protected static currentPath: string = process.cwd();
-
     constructor() {
         super(Workbench.locators.Workbench.constructor);
+    }
+
+    /**
+     * Get path of open folder/workspace
+     */
+    async getOpenFolderPath(): Promise<string> {
+        const { folder } = await parseTitleBar();
+        if (folder) {
+            return folder;
+        }
+        else {
+            throw new Error('There are not open folders in VS Code. Use Workbench.openFolder function first or try passing absolute path.');
+        }
+    }
+
+    /**
+     * Get name of open folder/workspace
+     */
+    async getOpenFolderName(): Promise<string> {
+        return path.basename(await this.getOpenFolderPath());
     }
 
     /**
@@ -82,7 +105,7 @@ export class Workbench extends AbstractElement {
             return [];
         }
         const elements = await container.findElements(Workbench.locators.Workbench.notificationItem);
-        
+
         for (const element of elements) {
             notifications.push(await new StandaloneNotification(element).wait());
         }
@@ -96,7 +119,7 @@ export class Workbench extends AbstractElement {
     openNotificationsCenter(): Promise<NotificationsCenter> {
         return new StatusBar().openNotificationsCenter();
     }
-    
+
     /**
      * Opens the settings editor
      *
@@ -119,7 +142,7 @@ export class Workbench extends AbstractElement {
             return InputBox.create();
         }
         return QuickOpenBox.create();
-     }
+    }
 
     /**
      * Open the command prompt, type in a command and execute
@@ -135,100 +158,64 @@ export class Workbench extends AbstractElement {
     /**
      * Open folder. Relative paths are resolved to absolute paths based on current open folder.
      * @param folderPath path to folder
-     * @param handleOnly if handleOnly is set to true, library is responsible for entire open procedure  
      * @returns promise which is resolved when workbench is ready
      */
-    async openFolder(folderPath: string, handleOnly: boolean = false): Promise<void> {
-        if (!handleOnly) {
-            await new TitleBar().select('File', 'Open Folder...');
-        }
+    async openFolder(folderPath: string): Promise<void> {
+        await new TitleBar().select('File', 'Open Folder...');
 
-        const dialog = await DialogHandler.getOpenDialog();
-        
+        const dialog = await this.getOpenDialog();
+        folderPath = PathUtils.normalizePath(folderPath);
+
         if (!path.isAbsolute(folderPath)) {
-            folderPath = path.join(Workbench.currentPath, folderPath);
+            folderPath = path.join(await this.getOpenFolderPath(), folderPath);
         }
 
         await dialog.selectPath(folderPath);
         await dialog.confirm();
-        await openFolderWaitCondition(path.basename(folderPath), 40000);
-        Workbench.currentPath = folderPath;
-    }
-
-    /**
-     * Open file and return its editor. Relative paths are resolved to absolute paths based on current open folder.
-     * @param path path to file.
-     * @param handleOnly if handleOnly is set to true, library is responsible for entire open procedure 
-     * @returns editor instance with open file
-     */
-    async openFile(filePath: string, handleOnly: boolean = false): Promise<Editor> {
-        if (!handleOnly) {
-            await new TitleBar().select('File', 'Open File...');
-        }
-
-        const dialog = await DialogHandler.getOpenDialog();
-        
-        if (!path.isAbsolute(filePath)) {
-            filePath = path.join(Workbench.currentPath, filePath);
-        }
-
-        await dialog.selectPath(filePath);
-        await dialog.confirm();
-
-        return await this.getDriver().wait(async () => {
-            const editorTab = await new EditorView().getActiveTab();
-
-            if (editorTab === undefined) {
-                return undefined;
-            }
-
-            if (filePath.includes(await editorTab.getTitle())) {
-                const editor = new TextEditor();
-                const tab = await editor.getTab();
-                if (await tab.getId() === await editorTab.getId()) {
-                    return editor;
-                }
-            }
-
-            return undefined;
-        }, 40000, `Could not find open editor for "${filePath}".`) as Editor;
+        await this.openFolderWaitCondition(folderPath, 40000);
     }
 
     /**
      * Close open folder.
-     * @param handleOnly if handleOnly is set to true, library is responsible for entire close procedure  
      * @returns promise which is resolved when folder is closed
      */
-    async closeFolder(handleOnly?: boolean): Promise<void> {
-        if (!handleOnly) {
-            await new TitleBar().select('File', 'Close Folder');
+    async closeFolder(): Promise<void> {
+        if (process.env.OPEN_FOLDER && PathUtils.normalizePath(process.env.OPEN_FOLDER) === await this.getOpenFolderPath()) {
+            return;
         }
 
+        await new TitleBar().select('File', 'Close Folder');
         await this.getDriver().wait(async () => {
-            const editorTab = await new EditorView().getActiveTab();
-
-            if (editorTab === undefined) {
+            try {
+                const title = new TitleBar().getTitle();
+                return await title === 'Welcome - Visual Studio Code';
+            }
+            catch {
                 return undefined;
             }
+        }, 40000, `Could not find "Welcome - Visual Studio Code" in window title. (closeFolder)`);
 
-            if (await editorTab.getTitle() === 'Welcome') {
-                return true;
+        // open default workspace
+        if (process.env.OPEN_FOLDER) {
+            await this.openFolder(process.env.OPEN_FOLDER);
+        }
+    }
+
+    /**
+    * Return existing open dialog object.
+    */
+    getOpenDialog(): Promise<IOpenDialog> {
+        return DialogHandler.getOpenDialog();
+    }
+
+    private async openFolderWaitCondition(folderPath: string, timeout: number = 40000): Promise<void> {
+        await SeleniumBrowser.instance.driver.wait(async () => {
+            try {
+                return await this.getOpenFolderPath() === folderPath;
             }
-
-            return undefined;
-        }, 40000, `Could not find Welcome tab. (closeFolder)`);
-     }
-}
-
-async function openFolderWaitCondition(folderName: string, timeout?: number): Promise<void> {
-	await SeleniumBrowser.instance.driver.wait(async () => {
-		try {
-			const section = await new SideBarView().getContent().getSection(folderName);
-			const html = await section.getDriver().wait(until.elementLocated(By.css("html")), 150);
-			return await section.isDisplayed() && await section.isEnabled() && html;
-		}
-		catch {
-			return false;
-		}
-	}, timeout, `Timed out: openFolderWaitCondition('${folderName}', ${timeout})`);
+            catch (e) {
+                return false;
+            }
+        }, timeout, `Could not find open folder with path "${folderPath}".`);
+    }
 }

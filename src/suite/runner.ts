@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import sanitize = require('sanitize-filename');
 import { logging } from 'selenium-webdriver';
+import { Workbench } from 'monaco-page-objects';
 
 /**
  * Mocha runner wrapper
@@ -19,14 +20,16 @@ export class VSRunner {
     private customSettings: Object;
     private codeVersion: string;
     private cleanup: boolean;
+    private findElementTimeout: number;
 
-    constructor(bin: string, codeVersion: string, customSettings: Object = {}, cleanup: boolean = false, config?: string) {
+    constructor(bin: string, codeVersion: string, customSettings: Object = {}, cleanup: boolean = false, config?: string, findElementTimeout?: number) {
         const conf = this.loadConfig(config);
         this.mocha = new Mocha(conf);
         this.chromeBin = bin;
         this.customSettings = customSettings;
         this.codeVersion = codeVersion;
-        this.cleanup = cleanup; 
+        this.cleanup = cleanup;
+        this.findElementTimeout = findElementTimeout ?? 0;
     }
 
     /**
@@ -39,6 +42,7 @@ export class VSRunner {
         return new Promise(resolve => {
             let self = this;
             let browser: VSBrowser = new VSBrowser(this.chromeBin, this.codeVersion, this.customSettings, logLevel);
+            browser.findElementTimeout = this.findElementTimeout;
             const universalPattern = testFilesPattern.replace(/'/g, '');
             const testFiles = glob.sync(universalPattern);
     
@@ -60,12 +64,18 @@ export class VSRunner {
             });
     
             this.mocha.suite.beforeAll(async function () {
-                this.timeout(15000);
+                this.timeout(40000);
                 const start = Date.now();
                 await browser.start();
                 await browser.waitForWorkbench();
                 await new Promise((res) => { setTimeout(res, 2000); });
                 console.log(`Browser ready in ${Date.now() - start} ms`);
+
+                if (process.env.OPEN_FOLDER) {
+                    console.log(`Opening "${process.env.OPEN_FOLDER}".`);
+                    await new Workbench().openFolder(process.env.OPEN_FOLDER);
+                }
+
                 console.log('Launching tests...');
             });
     

@@ -24,6 +24,10 @@ export interface RunOptions {
     config?: string;
     /** logging level of the Webdriver */
     logLevel?: logging.Level;
+    /** open folder in VS Code */
+    openFolder?: string;
+    /** time after driver.findElement and other page objects fail */
+    findElementTimeout?: number;
 }
 
 /** defaults for the [[RunOptions]] */
@@ -249,7 +253,12 @@ export class CodeUtil {
         process.env = finalEnv;
         process.env.TEST_RESOURCES = this.downloadFolder;
         process.env.EXTENSIONS_FOLDER = this.extensionsFolder;
-        const runner = new VSRunner(this.executablePath, literalVersion, this.parseSettings(runOptions.settings ?? DEFAULT_RUN_OPTIONS.settings), runOptions.cleanup, runOptions.config);
+
+        if (runOptions.openFolder) {
+            process.env.OPEN_FOLDER = path.isAbsolute(runOptions.openFolder) ? runOptions.openFolder : path.join(process.cwd(), runOptions.openFolder);
+        }
+
+        const runner = new VSRunner(this.executablePath, literalVersion, this.parseSettings(runOptions.settings ?? DEFAULT_RUN_OPTIONS.settings), runOptions.cleanup, runOptions.config, runOptions.findElementTimeout);
         return runner.runTests(testFilesPattern, this, runOptions.logLevel);
     }
 

@@ -1,10 +1,10 @@
-import { AbstractElement } from "../AbstractElement";
-import { Menu } from "./Menu";
+import { IMenuItem } from "extension-tester-page-objects";
+import { AbstractElement, Menu } from "../..";
 
 /**
  * Abstract element representing a menu item
  */
-export abstract class MenuItem extends AbstractElement {
+export abstract class MenuItem extends AbstractElement implements IMenuItem {
     protected parent!: Menu;
     protected label!: string;
 
@@ -29,7 +29,11 @@ export abstract class MenuItem extends AbstractElement {
     /**
      * Returns the label of the menu item
      */
-    getLabel(): string | Promise<string> {
+    async getLabel(): Promise<string> {
         return this.label;
+    }
+
+    async isNesting(): Promise<boolean> {
+        return false;
     }
 }

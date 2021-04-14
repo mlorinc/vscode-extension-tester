@@ -47,7 +47,7 @@ export class VSBrowser extends SeleniumBrowser {
     }
 
     get findElementTimeout(): number {
-        return this.findElementTimeout;
+        return this._findElementTimeout;
     }
     set findElementTimeout(value: number) {
         this._findElementTimeout = value;
@@ -67,7 +67,10 @@ export class VSBrowser extends SeleniumBrowser {
             "window.titleBarStyle": "custom",
             "workbench.editor.enablePreview": false,
             "window.restoreFullscreen": true,
-            "window.newWindowDimensions": "maximized"
+            "window.newWindowDimensions": "maximized",
+            "window.title": "${rootPath}${separator}${activeEditorLong}${separator}${appName}",
+            "window.titleSeparator": " - ",
+            "explorer.compactFolders": false
         };
         if (Object.keys(this.customSettings).length > 0) {
             console.log('Detected user defined code settings');
