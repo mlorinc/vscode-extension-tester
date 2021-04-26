@@ -1,6 +1,6 @@
 import { TreeItem } from "../../ViewItem";
 import { WebElement } from "selenium-webdriver";
-import { IDefaultTreeItem, ITreeItem } from "extension-tester-page-objects";
+import { IDefaultTreeItem, ITreeItem, SeleniumBrowser } from "extension-tester-page-objects";
 import { DefaultTreeSection } from "../../../..";
 
 /**
@@ -35,7 +35,22 @@ export class DefaultTreeItem extends TreeItem implements IDefaultTreeItem {
 
     async getChildren(): Promise<ITreeItem[]> {
         const rows = await this.getChildItems(DefaultTreeItem.locators.DefaultTreeSection.itemRow);
-        const items = await Promise.all(rows.map(async row => new DefaultTreeItem(row, this.enclosingItem as DefaultTreeSection).wait()));
+        const items: IDefaultTreeItem[] = [];
+
+        for (const row of rows) {
+            try {
+                await this.getDriver().wait(() => this.enclosingItem, SeleniumBrowser.instance.findElementTimeout, 'Could not find enclosing element');
+                const item = await new DefaultTreeItem(row, this.enclosingItem as DefaultTreeSection).wait();
+                items.push(item);
+            }
+            catch (e) {
+                if (e.name === 'StaleElementReferenceError') {
+                    continue;
+                }
+                throw e;
+            }
+        }
+
         return items;
     }
 

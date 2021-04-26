@@ -33,7 +33,7 @@ export abstract class TreeItem extends ViewItem implements ITreeItem {
      * Retrieves the tooltip of this TreeItem.
      * @returns A promise resolving to the tooltip or undefined if the TreeItem has no tooltip.
      */
-    async getTooltip(): Promise<string|undefined> {
+    async getTooltip(): Promise<string | undefined> {
         return undefined;
     }
 
@@ -106,7 +106,7 @@ export abstract class TreeItem extends ViewItem implements ITreeItem {
         let container: WebElement;
         try {
             container = await this.findElement(TreeItem.locators.TreeItem.actions);
-        } catch(err) {
+        } catch (err) {
             return [];
         }
         const actions: ViewItemAction[] = [];
@@ -151,14 +151,23 @@ export abstract class TreeItem extends ViewItem implements ITreeItem {
         const baseLevel = +await this.getAttribute(TreeItem.locators.ViewSection.level);
 
         for (const row of rows) {
-            const level = +await row.getAttribute(TreeItem.locators.ViewSection.level);
-            const index = +await row.getAttribute(TreeItem.locators.ViewSection.index);
+            try {
+                const level = +await row.getAttribute(TreeItem.locators.ViewSection.level);
+                const index = +await row.getAttribute(TreeItem.locators.ViewSection.index);
 
-            if (index <= baseIndex) { continue; }
-            if (level > baseLevel + 1) { continue; }
-            if (level <= baseLevel) { break; }
+                if (index <= baseIndex) { continue; }
+                if (level > baseLevel + 1) { continue; }
+                if (level <= baseLevel) { break; }
 
-            items.push(row);
+                items.push(row);
+            }
+            catch (e) {
+                // item got probably deleted
+                if (e.name === 'StaleElementReferenceError') {
+                    continue;
+                }
+                throw e;
+            }
         }
 
         return items;
