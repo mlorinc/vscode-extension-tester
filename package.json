@@ -15,15 +15,16 @@
   "scripts": {
     "prepack": "npm run build",
     "prepare-deps": "npm run build-native && npm run build-page-objects && npm run build-locators",
-    "build-page-objects": "cd page-objects && npm i && npm pack",
-    "build-native": "cd native && npm i && npm pack",
-    "build-locators": "cd locators && npm i && npm pack",
+    "build-page-objects": "cd page-objects && npm i --production && npm pack",
+    "build-native": "echo hello",
+    "build-locators": "cd locators && npm i --production && npm pack",
     "prebuild": "npm run prepare-deps && cd api-handler && npm install",
     "build": "rimraf out/ && tsc && chmod a+x ./out/cli.js && cd api-handler && npm run build && cp *.vsix ../resources/api-handler.vsix",
     "doc": "typedoc --out docs ./src/",
     "prepare-test": "cd test/test-project && npm install && rimraf package-lock.json",
     "test": "npm run build && cd test/test-project && npm run ui-test",
-    "ci-test": "npm run build && cd test/test-project && npm run ci-test"
+    "ci-test": "npm run build && cd test/test-project && npm run ci-test",
+    "refresh": "cd page-objects/ && npm pack && cd .. && npm rm monaco-page-objects && npm install file:./page-objects/monaco-page-objects-1.5.2.tgz && npm pack"
   },
   "repository": {
     "type": "git",
@@ -62,15 +63,14 @@
     "fs-extra": "^9.0.1",
     "glob": "^7.1.6",
     "js-yaml": "^3.13.1",
-    "monaco-page-objects": "file:./page-objects/monaco-page-objects-1.5.1.tgz",
+    "monaco-page-objects": "file:page-objects/monaco-page-objects-1.5.2.tgz",
     "request": "^2.88.0",
     "sanitize-filename": "^1.6.3",
     "selenium-webdriver": "^3.0.0",
     "targz": "^1.0.1",
     "unzip-stream": "^0.3.0",
     "vsce": "^1.81.0",
-    "vscode-extension-tester-locators": "file:./locators/vscode-extension-tester-locators-1.53.2.tgz",
-    "vscode-extension-tester-native": "file:./native/vscode-extension-tester-native-3.0.2.tgz"
+    "vscode-extension-tester-locators": "file:locators/vscode-extension-tester-locators-1.54.1.tgz"
   },
   "peerDependencies": {
     "mocha": ">=5.2.0"
