@@ -1,4 +1,5 @@
-import { By, Locator } from "selenium-webdriver";
+import { getTimeout, INotificationsCenter, repeat } from "extension-tester-page-objects";
+import { By, Locator, until } from "selenium-webdriver";
 import { AbstractElement } from "../AbstractElement";
 import { NotificationsCenter } from "../workbench/NotificationsCenter";
 
@@ -14,7 +15,7 @@ export class StatusBar extends AbstractElement {
      * Open the notifications center
      * @returns Promise resolving to NotificationsCenter object
      */
-    async openNotificationsCenter(): Promise<NotificationsCenter> {
+    async openNotificationsCenter(): Promise<INotificationsCenter> {
         await this.toggleNotificationsCentre(true);
         return new NotificationsCenter();
     }
@@ -122,16 +123,20 @@ export class StatusBar extends AbstractElement {
      * @param open true to open, false to close
      */
     private async toggleNotificationsCentre(open: boolean): Promise<void> {
-        let visible = false;
-        try {
-            const klass = await this.enclosingItem.findElement(StatusBar.locators.StatusBar.notifications).getAttribute('class');
-            visible = klass.indexOf('visible') > -1;
-        } catch (err) {
-            // element doesn't exist until the button is first clicked
+        if (await NotificationsCenter.isOpen() === open) {
+            return;
         }
-        if (visible !== open) {
-            await this.findElement(StatusBar.locators.StatusBar.bell).click();
-        }
+
+        const bell = await this.findElement(StatusBar.locators.StatusBar.bell);
+        await bell.getDriver().wait(until.elementIsEnabled(bell), getTimeout());
+        await bell.click();
+
+        await repeat(async () => await NotificationsCenter.isOpen() === open,
+            {
+                timeout: getTimeout(),
+                threshold: 400,
+                message: `Waiting for notification center to be ${open ? 'open' : 'closed'}.`
+            });
     }
 
     private async getPartText(locator: Locator): Promise<string> {
