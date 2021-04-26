@@ -1,21 +1,12 @@
 import { ElementWithContexMenu } from "../ElementWithContextMenu";
 import { AbstractElement } from "../AbstractElement";
 import { until, WebElement } from "selenium-webdriver";
-
-/**
- * Available types of notifications
- */
-export enum NotificationType {
-    Info = 'info',
-    Warning = 'warning',
-    Error = 'error',
-    Any = 'any'
-}
+import { INotification, INotificationButton, NotificationType } from "extension-tester-page-objects";
 
 /**
  * Abstract element representing a notification
  */
-export abstract class Notification extends ElementWithContexMenu {
+export abstract class Notification extends ElementWithContexMenu implements INotification {
 
     /**
      * Get the message of the notification
@@ -73,7 +64,7 @@ export abstract class Notification extends ElementWithContexMenu {
      * of NotificationButton objects
      * @returns Promise resolving to array of NotificationButton objects
      */
-    async getActions(): Promise<NotificationButton[]> {
+    async getActions(): Promise<INotificationButton[]> {
         const buttons: NotificationButton[] = [];
         const elements = await this.findElement(Notification.locators.Notification.actions)
             .findElements(Notification.locators.Notification.action);
@@ -115,7 +106,7 @@ export class CenterNotification extends Notification {
 /**
  * Notification button
  */
-class NotificationButton extends AbstractElement {
+class NotificationButton extends AbstractElement implements INotificationButton {
     private title: string;
 
     constructor(title: string, notification: Notification) {
@@ -123,7 +114,7 @@ class NotificationButton extends AbstractElement {
         this.title = title;
     }
 
-    getTitle(): string {
+    async getTitle(): Promise<string> {
         return this.title;
     }
 }

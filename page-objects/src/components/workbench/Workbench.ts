@@ -5,7 +5,6 @@ import {
     BottomBarPanel,
     EditorView,
     InputBox,
-    NotificationsCenter,
     parseTitleBar,
     QuickOpenBox,
     SettingsEditor,
@@ -13,10 +12,11 @@ import {
     StatusBar,
     TitleBar
 } from '../..';
-import { DialogHandler } from 'vscode-extension-tester-native';
 import { Key, until, WebElement } from 'selenium-webdriver';
 import { Notification, StandaloneNotification } from './Notification';
 import {
+    FileType,
+    INotificationsCenter,
     IOpenDialog,
     PathUtils,
     SeleniumBrowser,
@@ -116,7 +116,7 @@ export class Workbench extends AbstractElement {
      * Opens the notifications center
      * @returns Promise resolving to NotificationsCenter object
      */
-    openNotificationsCenter(): Promise<NotificationsCenter> {
+    openNotificationsCenter(): Promise<INotificationsCenter> {
         return new StatusBar().openNotificationsCenter();
     }
 
@@ -137,7 +137,7 @@ export class Workbench extends AbstractElement {
      * @returns Promise resolving to InputBox (vscode 1.44+) or QuickOpenBox (vscode up to 1.43) object
      */
     async openCommandPrompt(): Promise<QuickOpenBox | InputBox> {
-        await this.getDriver().actions().sendKeys(Key.F1).perform();
+        await new TitleBar().select('View', 'Command Palette...');
         if (Workbench.versionInfo.browser.toLowerCase() === 'vscode' && Workbench.versionInfo.version >= '1.44.0') {
             return InputBox.create();
         }
@@ -152,7 +152,7 @@ export class Workbench extends AbstractElement {
     async executeCommand(command: string): Promise<void> {
         const prompt = await this.openCommandPrompt();
         await prompt.setText(`>${command}`);
-        await prompt.confirm();
+        await prompt.selectQuickPick(command);
     }
 
     /**
@@ -163,7 +163,7 @@ export class Workbench extends AbstractElement {
     async openFolder(folderPath: string): Promise<void> {
         await new TitleBar().select('File', 'Open Folder...');
 
-        const dialog = await this.getOpenDialog();
+        const dialog = await this.getOpenDialog(FileType.FOLDER);
         folderPath = PathUtils.normalizePath(folderPath);
 
         if (!path.isAbsolute(folderPath)) {
@@ -204,8 +204,8 @@ export class Workbench extends AbstractElement {
     /**
     * Return existing open dialog object.
     */
-    getOpenDialog(): Promise<IOpenDialog> {
-        return DialogHandler.getOpenDialog();
+    async getOpenDialog(type: FileType): Promise<IOpenDialog> {
+        return new InputBoxOpenDialog();
     }
 
     private async openFolderWaitCondition(folderPath: string, timeout: number = 40000): Promise<void> {
@@ -218,4 +218,20 @@ export class Workbench extends AbstractElement {
             }
         }, timeout, `Could not find open folder with path "${folderPath}".`);
     }
+}
+
+class InputBoxOpenDialog extends InputBox implements IOpenDialog {
+    async selectPath(filePath: string): Promise<void> {
+        await this.wait(SeleniumBrowser.instance.findElementTimeout);
+        if (process.platform !== 'win32' && path.isAbsolute(filePath) && path.isAbsolute(await this.getText())) {
+            await this.sendKeys(
+                Key.chord(Key.SHIFT, Key.HOME),
+                Key.chord(Key.SHIFT, Key.RIGHT),
+                filePath.slice(1)
+            );
+        }
+        else {
+            await this.setText(filePath);
+        }
+    }   
 }

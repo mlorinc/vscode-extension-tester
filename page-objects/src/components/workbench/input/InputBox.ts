@@ -1,5 +1,6 @@
 import { Input, QuickPickItem } from "../../..";
 import { until } from "selenium-webdriver";
+import { IQuickPickItem, SeleniumBrowser } from "extension-tester-page-objects";
 
 /**
  * Plain input box variation of the input page object
@@ -14,8 +15,9 @@ export class InputBox extends Input {
      * Use when an input box is scheduled to appear.
      */
     static async create(): Promise<InputBox> {
-        await InputBox.driver.wait(until.elementLocated(InputBox.locators.InputBox.constructor), 5000);
-        return new InputBox().wait();
+        const timeout = SeleniumBrowser.instance.findElementTimeout || 5000;
+        await InputBox.driver.wait(until.elementLocated(InputBox.locators.InputBox.constructor), timeout);
+        return new InputBox().wait(timeout);
     }
 
     /**
@@ -31,8 +33,8 @@ export class InputBox extends Input {
         return klass.indexOf('done') < 0;
     }
 
-    async getQuickPicks(): Promise<QuickPickItem[]> {
-        const picks: QuickPickItem[] = [];
+    async getQuickPicks(): Promise<IQuickPickItem[]> {
+        const picks: IQuickPickItem[] = [];
         const elements = await this.findElement(InputBox.locators.InputBox.quickList)
             .findElement(InputBox.locators.InputBox.rows)
             .findElements(InputBox.locators.InputBox.row);

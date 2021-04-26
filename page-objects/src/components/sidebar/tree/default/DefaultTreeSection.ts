@@ -1,7 +1,7 @@
 import { TreeSection } from "../TreeSection";
 import { Key, until } from 'selenium-webdriver';
 import { DefaultTreeItem } from "./DefaultTreeItem";
-import { IDefaultTreeItem, IDefaultTreeSection, IEditor, PathUtils, TreeItemNotFound } from "extension-tester-page-objects";
+import { FileType, IDefaultTreeItem, IDefaultTreeSection, IEditor, PathUtils, TreeItemNotFound } from "extension-tester-page-objects";
 import * as path from "path";
 import { ModalDialog, parseTitleBar, TextEditor, TitleBar, Workbench } from "../../../..";
 
@@ -101,7 +101,7 @@ export class DefaultTreeSection extends TreeSection<IDefaultTreeItem> implements
         catch (e) {
             if (path.isAbsolute(filePath)) {
                 await new TitleBar().select('File', 'Open File...');
-                const dialog = await new Workbench().getOpenDialog();
+                const dialog = await new Workbench().getOpenDialog(FileType.FILE);
                 await dialog.selectPath(filePath);
                 await dialog.confirm();
             }

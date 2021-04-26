@@ -8,9 +8,10 @@ import { URL } from 'url';
 
 export { ReleaseQuality }
 export { MochaOptions } from 'mocha';
+export { AbstractElement, LocatorDiff, MarkerType } from 'monaco-page-objects';
 export * from './browser';
 export * from 'monaco-page-objects';
-export { SeleniumBrowser } from 'extension-tester-page-objects';
+export * from 'extension-tester-page-objects';
 export * from 'selenium-webdriver';
 
 export interface SetupOptions {

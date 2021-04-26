@@ -3,6 +3,7 @@ import { VSCodeAbstractElement } from './components/AbstractElement';
 import { LocatorLoader } from "./locators/loader";
 
 export * from './locators/locators';
+export { VSCodeAbstractElement as AbstractElement } from './components/AbstractElement';
 
 export * from './components/menu/Menu';
 export * from './components/menu/MenuItem';
@@ -43,7 +44,7 @@ export * from './components/editor/DiffEditor';
 export * from './components/editor/WebView';
 export * from './components/editor/ContentAssist';
 
-export { Notification, NotificationType } from './components/workbench/Notification';
+export { Notification } from './components/workbench/Notification';
 export * from './components/workbench/NotificationsCenter';
 export * from './components/workbench/input/Input';
 export * from './components/workbench/input/InputBox';
@@ -53,8 +54,6 @@ export * from './components/workbench/Workbench';
 export * from './components/dialog/ModalDialog';
 
 export * from './conditions/WaitForAttribute';
-
-export { VSCodeAbstractElement as AbstractElement } from './components/AbstractElement';
 
 /**
  * Initialize the page objects for your tests
