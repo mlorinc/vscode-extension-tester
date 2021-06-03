@@ -1,6 +1,5 @@
-import { AbstractElement } from "../AbstractElement";
-import { TitleBar } from "../..";
 import { WebElement } from "selenium-webdriver";
+import { AbstractElement, TitleBar } from "../..";
 
 /**
  * Page object for the windows controls part of the title bar
