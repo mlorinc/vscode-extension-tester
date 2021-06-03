@@ -159,8 +159,6 @@ export class DefaultTreeSection extends TreeSection<IDefaultTreeItem> implements
             action = 'New Folder';
         }
 
-        console.log(segments.join('/'));
-
         if (segments.length > 1) {
             try {
                 const parent = await this.findItemByPathInternal(true, ...segments.slice(0, -1));
@@ -173,7 +171,6 @@ export class DefaultTreeSection extends TreeSection<IDefaultTreeItem> implements
         }
         else {
             const items = await this.getVisibleItems();
-            console.log(items.length);
             if (items.length > 0) {
                 throw new Error(`Not supported. Cannot create another ${type}(${filePath}) with parent as root. Use your first created file/folder or delete the first file/folder.`);
             }
@@ -203,7 +200,6 @@ export class DefaultTreeSection extends TreeSection<IDefaultTreeItem> implements
                         return true;
                     }
                     catch (e) {
-                        console.log(e);
                         if (e instanceof TreeItemNotFound) {
                             return false;
                         }
